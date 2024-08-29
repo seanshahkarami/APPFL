@@ -11,7 +11,7 @@ class GRPCClientCommunicator:
     gRPC communicator for federated learning clients.
     """
     def __init__(
-        self, 
+        self,
         client_id: Union[str, int],
         *,
         server_uri: str,
@@ -21,11 +21,12 @@ class GRPCClientCommunicator:
         authenticator: Optional[str] = None,
         authenticator_args: Dict[str, Any] = {},
         max_message_size: int = 2 * 1024 * 1024,
+        connect_timeout: Optional[float] = 3600,
         **kwargs,
     ):
         """
         Create a channel to the server and initialize the gRPC client stub.
-        
+
         :param client_id: A unique client ID.
         :param server_uri: The URI of the server to connect to.
         :param use_ssl: Whether to use SSL/TLS to authenticate the server and encrypt communicated data.
@@ -34,6 +35,7 @@ class GRPCClientCommunicator:
         :param authenticator: The name of the authenticator to use for authenticating the client in each RPC.
         :param authenticator_args: The arguments to pass to the authenticator.
         :param max_message_size: The maximum message size in bytes.
+        :param connect_timeout: The timeout in seconds for establishing a connection to the server.
         """
         self.client_id = client_id
         self.max_message_size = max_message_size
@@ -46,7 +48,7 @@ class GRPCClientCommunicator:
             authenticator_args=authenticator_args,
             max_message_size=max_message_size,
         )
-        grpc.channel_ready_future(channel).result(timeout=3600)
+        grpc.channel_ready_future(channel).result(timeout=connect_timeout)
         self.stub = GRPCCommunicatorStub(channel)
 
     def get_configuration(self, **kwargs) -> DictConfig:
@@ -70,7 +72,7 @@ class GRPCClientCommunicator:
             raise Exception("Server returned an error, stopping the client.")
         configuration = OmegaConf.create(response.configuration)
         return configuration
-        
+
     def get_global_model(self, **kwargs) -> Union[Union[Dict, OrderedDict], Tuple[Union[Dict, OrderedDict], Dict]]:
         """
         Get the global model from the server.
@@ -134,7 +136,7 @@ class GRPCClientCommunicator:
         meta_data = json.loads(response.meta_data)
         meta_data["status"] = "DONE" if response.header.status == ServerStatus.DONE else "RUNNING"
         return model, meta_data
-        
+
     def invoke_custom_action(self, action: str, **kwargs) -> Dict:
         """
         Invoke a custom action on the server.
