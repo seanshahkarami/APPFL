@@ -2,6 +2,7 @@ import os
 import uuid
 import pathlib
 import importlib
+import logging
 import torch.nn as nn
 from datetime import datetime
 from appfl.compressor import *
@@ -16,6 +17,9 @@ from appfl.misc import create_instance_from_file, \
     create_instance_from_file_source, \
     get_function_from_file_source, \
     run_function_from_file_source
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 class ClientAgent:
     """
@@ -44,31 +48,31 @@ class ClientAgent:
     ) -> None:
         self.client_agent_config = client_agent_config
         self._create_logger()
-        self.logger.debug("Loading model")
+        logger.debug("Loading model")
         self._load_model()
-        self.logger.debug("Loading loss function")
+        logger.debug("Loading loss function")
         self._load_loss()
-        self.logger.debug("Loading metrics")
+        logger.debug("Loading metrics")
         self._load_metric()
-        self.logger.debug("Loading dataset")
+        logger.debug("Loading dataset")
         self._load_data()
-        self.logger.debug("Loading trainer")
+        logger.debug("Loading trainer")
         self._load_trainer(trainer)
-        self.logger.debug("Loading compressor")
+        logger.debug("Loading compressor")
         self._load_compressor()
 
     def load_config(self, config: DictConfig) -> None:
         """Load additional configurations provided by the server."""
         self.client_agent_config = OmegaConf.merge(self.client_agent_config, config)
-        self.logger.debug("Loading model")
+        logger.debug("Loading model")
         self._load_model()
-        self.logger.debug("Loading loss function")
+        logger.debug("Loading loss function")
         self._load_loss()
-        self.logger.debug("Loading metrics")
+        logger.debug("Loading metrics")
         self._load_metric()
-        self.logger.debug("Loading trainer")
+        logger.debug("Loading trainer")
         self._load_trainer()
-        self.logger.debug("Loading compressor")
+        logger.debug("Loading compressor")
         self._load_compressor()
 
     def get_id(self) -> str:
