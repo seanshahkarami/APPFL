@@ -44,20 +44,31 @@ class ClientAgent:
     ) -> None:
         self.client_agent_config = client_agent_config
         self._create_logger()
+        self.logger.debug("Loading model")
         self._load_model()
+        self.logger.debug("Loading loss function")
         self._load_loss()
+        self.logger.debug("Loading metrics")
         self._load_metric()
+        self.logger.debug("Loading dataset")
         self._load_data()
+        self.logger.debug("Loading trainer")
         self._load_trainer(trainer)
+        self.logger.debug("Loading compressor")
         self._load_compressor()
 
     def load_config(self, config: DictConfig) -> None:
         """Load additional configurations provided by the server."""
         self.client_agent_config = OmegaConf.merge(self.client_agent_config, config)
+        self.logger.debug("Loading model")
         self._load_model()
+        self.logger.debug("Loading loss function")
         self._load_loss()
+        self.logger.debug("Loading metrics")
         self._load_metric()
+        self.logger.debug("Loading trainer")
         self._load_trainer()
+        self.logger.debug("Loading compressor")
         self._load_compressor()
 
     def get_id(self) -> str:
@@ -68,7 +79,7 @@ class ClientAgent:
             else:
                 self.client_id = str(uuid.uuid4())
         return self.client_id
-    
+
     def get_sample_size(self) -> int:
         """Return the size of the local dataset."""
         return len(self.train_dataset)
@@ -87,11 +98,11 @@ class ClientAgent:
         if self.enable_compression:
             params = self.compressor.compress_model(params)
         return params if metadata is None else (params, metadata)
-    
+
     def load_parameters(self, params) -> None:
         """Load parameters from the server."""
         self.trainer.load_parameters(params)
-        
+
     def save_checkpoint(self, checkpoint_path: Optional[str]=None) -> None:
         """Save the model to a checkpoint file."""
         if checkpoint_path is None:
@@ -99,11 +110,11 @@ class ClientAgent:
             output_filename = self.client_agent_config.train_configs.get("checkpoint_filename", "checkpoint")
             curr_time_str = datetime.now().strftime('%Y-%m-%d-%H:%M:%S')
             checkpoint_path = f"{output_dir}/{output_filename}_{self.get_id()}_{curr_time_str}.pth"
-            
+
         # Make sure the directory exists
         if not os.path.exists(os.path.dirname(checkpoint_path)):
             pathlib.Path(os.path.dirname(checkpoint_path)).mkdir(parents=True, exist_ok=True)
-            
+
         torch.save(self.model.state_dict(), checkpoint_path)
 
     def _create_logger(self):
